@@ -3,6 +3,9 @@ on:
   schedule:
     - cron: "*/30 * * * *"
   workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths: [".github/workflows/enforce_https.yml"]
 permissions:
   pages: write
   contents: read
@@ -14,6 +17,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          # 2026-10-08 [OPUS55-LEGS-1008B] R63: print the certificate record every run so the seat can read why HTTPS is not live.
+          gh api repos/${{ github.repository }}/pages --jq '{cname, status, https_enforced, cert: .https_certificate}' || echo "pages read failed"
           state=$(gh api repos/${{ github.repository }}/pages --jq .https_enforced)
           echo "https_enforced=$state"
           if [ "$state" = "true" ]; then echo "already enforced"; exit 0; fi
